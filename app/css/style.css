@@ -1,0 +1,334 @@
+/* ==========================================================================
+   style.css —— 全站样式(移动优先,不引任何外部框架/字体/库)。
+   排版规范:手机宽度一行舒服;桌面宽度居中收窄(最多 ~540px)。
+   改主题色 / 间距:只改下方 :root 变量即可;新功能场景沿用同一套变量与按钮样式。
+   ========================================================================== */
+
+:root {
+  /* 基础色板 */
+  --bg: #f2f4f8;            /* 页面底色(浅灰蓝) */
+  --card: #ffffff;          /* 卡片白 */
+  --ink: #232a35;           /* 主文字(深灰) */
+  --sub: #6b7280;           /* 次要文字 */
+  --line: #e4e7ee;          /* 分隔线/描边 */
+  --brand: #4f6ef7;         /* 主色(按钮/进度) */
+  --brand-ink: #ffffff;     /* 主色按钮上的文字 */
+  --ok: #2f9e6e;            /* 熟悉 = 绿 */
+  --ok-bg: #e7f6ef;
+  --warn: #dd8b1b;          /* 陌生 = 橙 */
+  --warn-bg: #fdf1dd;
+  --bad: #d64b55;           /* 不会 = 红 */
+  --bad-bg: #fdecee;
+
+  /* 圆角与间距节奏 */
+  --r-lg: 20px;
+  --r-md: 14px;
+  --r-sm: 10px;
+  --gap: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 单一渲染容器:全屏纵向 flex,底部操作区自然贴底 */
+.app {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100vh; /* 老浏览器回退 */
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+  gap: var(--gap);
+}
+
+/* ---------- 顶栏(首页角标 / 会话内返回) ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 0;
+}
+.topbar .brand {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+.topbar .meta {
+  font-size: 13px;
+  color: var(--sub);
+}
+
+/* 会话标题栏:返回按钮 + 标题 + 剩余 */
+.session-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.session-head .title { font-size: 18px; font-weight: 700; }
+.session-head .remain { margin-left: auto; font-size: 13px; color: var(--sub); }
+
+.back-btn {
+  border: 0;
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 14px;
+  box-shadow: 0 1px 3px rgba(20, 24, 35, 0.08);
+  cursor: pointer;
+}
+
+/* ---------- 首页入口卡片 ---------- */
+.home-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.home-head {
+  margin: 6px 2px 2px;
+}
+.home-head h1 { margin: 0 0 4px; font-size: 22px; }
+.home-head p { margin: 0; color: var(--sub); font-size: 14px; }
+
+/* 顶部已完成进度条 */
+.progress-wrap {
+  margin: 10px 2px 6px;
+}
+.progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e6ee;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5b8cff, #4f6ef7);
+  transition: width 0.35s ease;
+}
+.progress-text {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--sub);
+  text-align: right;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px 18px;
+  box-shadow: 0 2px 6px rgba(20, 24, 35, 0.04);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  text-align: left;
+  transition: transform 0.06s ease, box-shadow 0.15s ease;
+}
+.entry:active { transform: scale(0.985); box-shadow: 0 1px 3px rgba(20, 24, 35, 0.08); }
+.entry .entry-icon {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.entry .entry-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.entry .entry-title { font-weight: 700; font-size: 17px; }
+.entry .entry-sub { font-size: 13px; color: var(--sub); }
+.entry .entry-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--sub);
+  white-space: nowrap;
+}
+
+.icon-study    { background: #e7edff; }
+.icon-unfam    { background: var(--warn-bg); }
+.icon-dontknow { background: var(--bad-bg); }
+
+/* ---------- 单词卡片 ---------- */
+.card-scene {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.word-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 2px 8px rgba(20, 24, 35, 0.05);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 24px;
+  text-align: center;
+}
+
+.word-main { font-size: clamp(30px, 9vw, 44px); font-weight: 800; letter-spacing: 0.5px; word-break: break-word; }
+.word-phonetic { margin-top: 10px; color: var(--sub); font-size: 16px; }
+.word-tag {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--sub);
+}
+
+/* 释义区(初始隐藏,点"显示释义"后出现) */
+.meaning-box {
+  margin-top: 22px;
+  width: 100%;
+  padding-top: 18px;
+  border-top: 1px dashed var(--line);
+  animation: fade-up 0.18s ease;
+}
+.meaning-pos { font-size: 14px; font-weight: 700; color: var(--brand); margin-bottom: 6px; }
+.meaning-text { font-size: 19px; font-weight: 600; line-height: 1.6; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 中央按钮:显示释义 */
+.reveal-btn {
+  margin: 16px auto 0;
+  border: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 12px 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(79, 110, 247, 0.25);
+}
+.reveal-btn:active { transform: scale(0.97); }
+
+/* ---------- 底部三键(熟悉 / 陌生 / 不会) ---------- */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--bg) 78%, transparent);
+  padding: 8px 0 4px;
+}
+.act-btn {
+  border: 0;
+  border-radius: var(--r-md);
+  min-height: 58px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.05s ease, filter 0.12s ease;
+}
+.act-btn:active { transform: scale(0.96); }
+.act-btn small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.8;
+}
+.act-familiar   { background: var(--ok-bg);   color: var(--ok); }
+.act-unfamiliar { background: var(--warn-bg); color: var(--warn); }
+.act-dontknow   { background: var(--bad-bg);  color: var(--bad); }
+
+/* ---------- 空队列 / 鼓励 ---------- */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 24px;
+}
+.empty .emoji { font-size: 52px; }
+.empty .msg { font-size: 20px; font-weight: 800; margin: 6px 0 0; }
+.empty .hint { color: var(--sub); font-size: 14px; margin: 0 0 4px; }
+
+/* 通用按钮行(空队列里的跳转) */
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.ghost-btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.primary-btn {
+  border: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.foot-note {
+  text-align: center;
+  font-size: 12px;
+  color: #b3bac5;
+  margin-top: 2px;
+}
