@@ -1,0 +1,87 @@
+# APK 云端构建:在 GitHub 的服务器上(自带 JDK + Android SDK)把 app/ 打成安卓安装包。
+# 触发方式:
+#   1) 手动:仓库 Actions → "Build Android APK" → Run workflow
+#   2) 打 tag:git tag vX.Y && git push origin vX.Y   (会自动建 GitHub Release,附上 APK)
+# 签名:若配置了仓库 secret KEYSTORE_B64 + KEYSTORE_PASS 则用同一把稳定钥匙(推荐,便于后续升级覆盖安装);
+#       否则每次构建现场生成一把新钥匙(仍可安装,但覆盖安装旧版前需先卸载)。
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Capacitor & scaffold Android project
+        working-directory: mobile
+        run: |
+          npm ci
+          npx cap add android
+          npx cap sync android
+
+      - name: Prepare keystore (use secret if present, else generate)
+        working-directory: mobile/android
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_B64 }}" ]; then
+            echo "Using keystore from secret KEYSTORE_B64"
+            echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > release.keystore
+          else
+            echo "No KEYSTORE_B64 secret — generating a fresh keystore for this build."
+            keytool -genkeypair -v -keystore release.keystore \
+              -storepass "${{ secrets.KEYSTORE_PASS || 'cet6pass' }}" \
+              -alias "cet6" -keypass "${{ secrets.KEYSTORE_PASS || 'cet6pass' }}" \
+              -dname "CN=CET6 Memory App, O=personal, C=CN" \
+              -keyalg RSA -keysize 2048 -validity 10000
+          fi
+
+      - name: Build release APK (unsigned)
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease
+
+      - name: zipalign + sign APK
+        working-directory: mobile/android
+        env:
+          KSPASS: ${{ secrets.KEYSTORE_PASS || 'cet6pass' }}
+        run: |
+          set -euo pipefail
+          BT=$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)
+          BTDIR="$ANDROID_HOME/build-tools/$BT"
+          "$BTDIR/zipalign" -f -p 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk app-aligned.apk
+          "$BTDIR/apksigner" sign \
+            --ks release.keystore --ks-key-alias cet6 --ks-pass "pass:${KSPASS}" \
+            --out app-release.apk app-aligned.apk
+          echo "Signed APK:"; ls -lh app-release.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cet6-apk
+          path: mobile/android/app-release.apk
+
+      - name: Create GitHub Release (only when triggered by a tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mobile/android/app-release.apk
+          generate_release_notes: true
